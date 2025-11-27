@@ -1,0 +1,104 @@
+# Warehouse Data Quality Report
+
+## Description
+This report explains the steps taken to clean and validate the warehouse dataset. 
+The goal was to detect and fix common data quality issues and produce a clean dataset ready for analysis.
+
+The main tasks addressed:
+- Missing or inconsistent quantity and price values
+- Inconsistent product names and categories
+- Logical inconsistencies between quantity and stock status
+- Date format standardization
+- Detection and handling of duplicates
+- Creation of a clean dataset
+
+---
+
+## Data Overview
+- Original dataset: `warehouse_raw.csv`
+- Total rows: ~1000
+- Columns:
+  - `Product_ID` — unique identifier
+  - `Product_Name` — name of the product
+  - `Category` — product category
+  - `Warehouse` — warehouse name
+  - `Location` — warehouse location
+  - `Quantity` — number of items in stock
+  - `Price` — product price
+  - `Supplier` — supplier name
+  - `Status` — stock status
+  - `Last_Restocked` — last restock date
+
+---
+
+## Data Cleaning Steps
+
+### 1. Quantity column
+- Replaced textual values like `'two hundred'` with numeric values (200)
+- Replaced `'NaN'` with `NULL`
+- Converted `Quantity` to `INT`
+- Filled missing values with the **average quantity per product**
+
+### 2. Product names
+- Removed leading and trailing spaces
+- Standardized capitalization:
+  - First letter uppercase
+  - Last letter uppercase
+  - Middle letters lowercase
+
+### 3. Category values
+- Standardized to capitalized format (e.g., `Clothing`, `Electronics`)
+
+### 4. Product ID
+- Checked uniqueness
+- Added a new `New_Product_ID` column with unique sequential IDs
+
+### 5. Price column
+- Replaced `'NaN'` with `NULL`
+- Converted to `DECIMAL(10,2)`
+- Filled missing values with the **average price per product**
+
+### 6. Detect inconsistent product information
+- Identified products with inconsistent `Category`, `Supplier`, or `Price`
+- Standardized product names by adjusting capitalization of last letter
+
+### 7. Supplier names
+- All supplier names were already correctly formatted; no changes needed
+
+### 8. Status column
+- All status values (`In Stock`, `Out of Stock`, `Low Stock`) were consistent; no changes required
+
+### 9. Last Restocked
+- Converted `Last_Restocked` to proper `DATE` format
+- Replaced `'NaN'` with `NULL`
+- Added a new column `Last_Restocked_Date` and dropped the old column
+
+### 10. Detect possible inventory errors
+- Flagged logical inconsistencies between `Quantity` and `Status`
+- Created new column `Stock_Level`:
+  - `Out of Stock` → `Quantity = NULL`
+  - `Low Stock` → `Quantity < 150`
+  - `In Stock` → `Quantity ≥ 150`
+- Dropped original `Status` column
+
+### 11. Create clean dataset
+- Selected all cleaned data into a new table: `warehouse_clean_data`
+- Exported to CSV: `warehouse_clean.csv`
+
+---
+
+## Summary
+After cleaning:
+- Missing and inconsistent values were corrected
+- Product names and categories were standardized
+- Logical inconsistencies between quantity and stock status were resolved
+- Dates were converted to a standard format
+- Duplicate and near-duplicate rows can be further checked if needed
+- The cleaned dataset is saved as `warehouse_clean.csv` and ready for analysis
+
+---
+
+## Notes
+- All transformations were performed using SQL Server
+- Original raw dataset is preserved in `warehouse_raw.csv`
+- SQL queries used for cleaning are available in `cleaning_queries.sql`
